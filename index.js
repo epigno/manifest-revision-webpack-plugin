@@ -175,7 +175,7 @@ ManifestRevisionPlugin.prototype.apply = function (compiler) {
 
     self.walkAndPrefetchAssets(compiler);
 
-    compiler.plugin('done', function (stats) {
+    function done(stats) {
         var data = stats.toJson(options);
         var parsedAssets = self.parsedAssets(data.modules);
         var outputData = null;
@@ -194,7 +194,15 @@ ManifestRevisionPlugin.prototype.apply = function (compiler) {
         }
 
         fs.writeFileSync(output, String(outputData));
-    });
+    };
+
+    if (compiler.hooks) {
+        var plugin = {name: 'ManifestRevisionPlugin'}
+        compiler.hooks.done.tap(plugin, done.bind(self))
+    } 
+    else {
+        compiler.plugin('done', done.bind(self))
+    }
 };
 
 module.exports = ManifestRevisionPlugin;
